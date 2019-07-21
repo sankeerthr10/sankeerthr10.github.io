@@ -1,44 +1,91 @@
-<!DOCTYPE html>
 <html>
-  <head>
-    <title>Startup</title>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+        <script src='https://cdn.rawgit.com/naptha/tesseract.js/1.0.10/dist/tesseract.js'></script>
+        <script src="caesar-cipher-breaker.js"></script>
+        <title>Tesseract Test</title>
+    </head>
+    <body>
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="style.css">
+        
+            <div class="page-header">
+                <h1>Caesar Cipher Decryptor</h1>
+            </div>
 
-   <meta name="google-signin-client_id" content="220476771765-gmsj5d7cg1vu3lftap0r80n3oglqurtp.apps.googleusercontent.com">
+            <div class="container">
+                <label for="fileInput">Choose File to OCR:</label>
+                <br>
+                <input type="file" id="fileInput" name="fileInput"/>
+                <p><img id="output" width="200" /></p>
+                <br />
+                <br />
+                <label> OCR text: </label>
+                <br />
+                <textarea id = "ocrText" rows="4" cols="50">
+                OCR text will appear here
+                </textarea>
+                <br />
+                <br />
+                 <button type="button" onclick="decipher()">Break Code</button>
+                 <br />
+                 <br />
+                <label> Decrypted text:</label>
+                <br />
+                <textarea rows="4" cols="50" id="decryptedText">
+                Decrypted text will appear here.
+                </textarea>
+                <br />
+                <br />
+                <label>Caser shift = </label>
+                <label id="shift"></label>
+               
+            </div>
+        
+    </body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            var fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', handleInputChange);
+        });
 
-   <script src="https://apis.google.com/js/platform.js" async defer></script>
+        function handleInputChange(event){
+            var input = event.target;
+            var file = input.files[0];
+            var imgSrc =  URL.createObjectURL(file);
+            document.getElementById('output').src = imgSrc;
+            console.log(file);
+            Tesseract.recognize(file)
+                .progress(function(message){
+                    console.log(message);
+                })
+                .then(function(result){
+                    var contentArea = document.getElementById('ocrText');
+                    contentArea.value = result.text;
+                })
+                .catch(function(err){
+                    console.error(err);
+                });
+        }
 
-   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+            function decipher() {
+            var text = document.getElementById("ocrText").value;
+            entropies = getAllEntropies(text);
+            entropies.sort(function(x, y) {
+                // Compare by lowest entropy, break ties by lowest shift
+                if (x[1] != y[1])
+                    return x[1] - y[1];
+                else
+                    return x[0] - y[0];
+            });
 
-   <script src="script.js" ></script>
-
-   
-
-
-
-    
-  </head>
-  
-  <body>
-
-  	<body background="Background.jpg">
-
-  	<header>
-  		<h1>Caesar Cipher Decryptor</h1>
-	</header>   
-
-		<div class="g-signin2" data-onsuccess="onSignIn"></div>
-
-  		<div class="programData">
-  			<p id="welcome"> </p>
-  			<button onclick="signOut()" class="btn btn-danger"> Sign Out</button>
-  		</div>    
-
-          
-       
-
-  </body>
-
+            var bestShift = entropies[0][0];
+            document.getElementById("decryptedText").value = decrypt(text, bestShift);
+            document.getElementById("shift").innerHTML = bestShift.toString();
+        }
+    </script>
 </html>
+
+
+
+
+
